@@ -56,7 +56,7 @@ class MyHandle (SimpleHTTPRequestHandler):
 
         elif self.path == '/listarFilmes':
             try:
-                with open(os.path.join(os.getcwd(), 'login.html'), 'r') as listarFilmes:
+                with open(os.path.join(os.getcwd(), 'listarFilmes.html'), 'r') as listarFilmes:
                     content = listarFilmes.read()
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')

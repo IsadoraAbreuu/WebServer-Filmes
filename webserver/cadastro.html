@@ -1,11 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Cadastro | FIlmes</title>
 </head>
-<body>
-    <h1>CADASTRO</h1>
+<body id="cadastro">
+        <header id="cadastroCabecalho"></header>
+
+        <main id="cadastroConteudo">
+            <h1>Cadastro de Filmes</h1>
+            <section id="informacoesCadastro">
+                <label for="ano">Nome:</label>
+                <input type="text" class="nomeCadastro" placeholder="Digite o nome do filme">
+                <label for="atores">Atores:</label>
+                <input type="text" id="atores" placeholder="Digite os atores separados por vírgula">
+                <label for="ano">Diretor:</label>
+                <input type="text" class="senhaLogin" placeholder="Digite o diretor do filme">
+                <label for="ano">Ano:</label>
+                <input type="text" id="ano" pattern="\d{4}" maxlength="4" placeholder="2025">
+                <label for="genero">Genero do filme:</label><br>
+                <select id="genero">
+                <optgroup label="Principais">
+                    <option value="acao">Acao</option>
+                    <option value="aventura">Aventura</option>
+                    <option value="comedia">Comedia</option>
+                    <option value="drama">Drama</option>
+                    <option value="ficcao">Ficcao Cientifica</option>
+                    <option value="fantasia">Fantasia</option>
+                    <option value="romance">Romance</option>
+                    <option value="terror">Terror</option>
+                    <option value="suspense">Suspense</option>
+                    <option value="animacao">Animacao</option>
+                </optgroup>
+
+                <optgroup label="Outros">
+                    <option value="documentario">Documentario</option>
+                    <option value="musical">Musical</option>
+                    <option value="biografia">Biografia</option>
+                    <option value="guerra">Guerra</option>
+                    <option value="western">Faroeste</option>
+                </optgroup>
+                </select>
+                <label for="ano">Produtora:</label>
+                <input type="text" class="senhaLogin" placeholder="Digite a produtora do filme">
+                <label for="sinopse">Sinopse do filme:</label><br>
+                <textarea id="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea>
+
+
+
+            </section>
+
+            <section id="cadastrar">
+                <button>
+                    <a href="" aria-label="Botão de entrar">Cadastrar</a>
+                </button>
+            </section>
+        </main>
 </body>
 </html>
