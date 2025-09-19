@@ -10,24 +10,17 @@
 
         <main id="loginConteudo">
             <h1>Login</h1>
-            <section id="informacoesLogin">
+            <form action="/sendlogin" method="post">
                 <label for="usuario">Usuário:</label>
                 <input type="text" class="usuarioLogin" name="usuario" placeholder="Digite seu nome de usuário">
                 <label for="senha">Senha:</label>
                 <input type="password" class="senhaLogin" name="senha" placeholder="Digite sua senha">
-            </section>
-
-            <section id="entrar">
-                <button>
-                    <a href="" aria-label="Botão de entrar">Entrar</a>
-                </button>
-            </section>
+                <button type="submit">Entrar</button>
+            </form>
 
             <section id="esqueceuSenha">
                 <p>Esqueceu a senha?<a href=""> Clique aqui para recuperar </a></p>
-
             </section>
-        
         </main>
 </body>
 </html>

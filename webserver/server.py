@@ -16,6 +16,10 @@ server.serve_forever()"""
 
 import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs
+
+# Lista para armazenar os livros cadastrados 
+filmes_cadastrados = []
 
 class MyHandle (SimpleHTTPRequestHandler):
     def list_directory(self, path):
@@ -31,6 +35,16 @@ class MyHandle (SimpleHTTPRequestHandler):
         except FileNotFoundError:
             pass
         return super().list_directory(path)
+    
+    def account_user(self, usuario, senha):
+        login = "isaabreucorrea@gmail.com"
+        password = "12345"
+
+        if usuario == login and senha == password:
+            return "Usuário logado com sucess :)"
+        else:
+            return "Usuário não existente :("
+
     def do_GET(self):
         if self.path == '/login':
             try:
@@ -66,6 +80,82 @@ class MyHandle (SimpleHTTPRequestHandler):
                 self.send_error(404, "File Not Found")
         else:
             super().do_GET()
+
+        if self.path == '/listarfilmes':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+
+            html = "<html><body><h1>Livros Cadastrados</h1><ul>"
+            for filme in filmes_cadastrados:
+                html += f"<li><strong>{filme['nome']}</strong> - {filme['diretor']} ({filme['ano']})</li>"
+            html += "</ul></body></html>"
+
+            self.wfile.write(html.encode())
+
+
+    def do_POST(self):
+        if self.path == '/sendlogin':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body)
+
+            usuario = form_data.get('usuario',[""])[0]
+            senha = form_data.get('senha', [""])[0]
+
+            logou = self.account_user(usuario, senha)
+
+            print("Data Form: ")
+            print("Email: ", form_data.get('usuario', [''])[0])
+            print("Password: ", form_data.get('senha', [''])[0])
+
+            self.send_response(200)
+            self.send_header("Content-type", 'text/html')
+            self.end_headers()
+            self.wfile.write(logou.encode('utf-8'))
+
+        elif self.path == '/sendcadastro':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body)
+
+            nome = form_data.get('nome',[""])[0]
+            atores = form_data.get('atores', [""])[0]
+            diretor = form_data.get('diretor', [""])[0]
+            ano = form_data.get('ano', [""])[0]
+            genero = form_data.get('genero', [""])[0]
+            produtora = form_data.get('produtora', [""])[0]
+            sinopse = form_data.get('sinopse', [""])[0]
+
+            # Criando dicionário com os dados do livro
+            filme = {
+                "nome": nome,
+                "atores": atores,
+                "diretor": diretor,
+                "ano": ano,
+                "genero": genero,
+                "produtora": produtora,
+                "sinopse": sinopse
+            }
+
+            filmes_cadastrados.append(filme)
+
+            print("Data Form: ")
+            print("Nome do Filme: ", form_data.get('nome', [''])[0])
+            print("Atores: ", form_data.get('atores', [''])[0])
+            print("Diretor: ", form_data.get('diretor', [''])[0])
+            print("Ano: ", form_data.get('ano', [''])[0])
+            print("Genero: ", form_data.get('genero', [''])[0])
+            print("Produtora: ", form_data.get('produtora', [''])[0])
+            print("Sinopse: ", form_data.get('sinopse', [''])[0])
+
+            self.send_response(200)
+            self.send_header("Content-type", 'text/html')
+            self.end_headers()
+            self.wfile.write("Filme cadastrado com sucess !".encode('utf-8'))
+
+        else:
+            super(MyHandle, self).do_POST()
     
 def main():
     server_address = ('', 8000)
