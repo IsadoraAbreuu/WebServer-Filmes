@@ -77,7 +77,7 @@ class MyHandle (SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
-        elif self.path == '/listarfilmes':
+        elif self.path == '/listar_filmes':
             try:
                 with open(os.path.join(os.getcwd(), 'listarFilmes.html'), 'r') as listarFilmes:
                     content = listarFilmes.read()
@@ -88,15 +88,22 @@ class MyHandle (SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
-            html = "<html><body><h1>Filmes Cadastrados</h1><ul>"
-            if filmes_cadastrados:
-                for filme in filmes_cadastrados:
-                    html += f"<li><strong>{filme['nome']}</strong> - {filme['diretor']} ({filme['ano']})</li>"
-            else:
-                html += "<p>Nenhum filme cadastrado.</p>"
-            html += "</ul></body></html>"
+        elif self.path == '/listarfilmes':
+            arquivo = 'filmes.json'
 
-            self.wfile.write(html.encode())
+            if os.path.exists(arquivo):
+                with open(arquivo, encoding='utf-8') as listagem:
+                    try:
+                        filmes = json.load(listagem)
+                    except json.JSONDecodeError:
+                        filmes = []
+            else:
+                filmes = []
+
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(filmes).encode('utf-8'))
 
         else:
             super().do_GET()
