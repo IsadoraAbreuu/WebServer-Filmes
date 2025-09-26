@@ -17,9 +17,18 @@ server.serve_forever()"""
 import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
+import json
 
 # Lista para armazenar os livros cadastrados 
 filmes_cadastrados = []
+
+# Carregar filmes do arquivo JSON (se existir)
+if os.path.exists('filmes.json'):
+    with open('filmes.json', 'r', encoding='utf-8') as f:
+        try:
+            filmes_cadastrados = json.load(f)
+        except json.JSONDecodeError:
+            filmes_cadastrados = []
 
 class MyHandle (SimpleHTTPRequestHandler):
     def list_directory(self, path):
@@ -68,7 +77,7 @@ class MyHandle (SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
-        elif self.path == '/listarFilmes':
+        elif self.path == '/listarfilmes':
             try:
                 with open(os.path.join(os.getcwd(), 'listarFilmes.html'), 'r') as listarFilmes:
                     content = listarFilmes.read()
@@ -78,20 +87,21 @@ class MyHandle (SimpleHTTPRequestHandler):
                 self.wfile.write(content.encode("utf-8"))
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
-        else:
-            super().do_GET()
 
-        if self.path == '/listarfilmes':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-
-            html = "<html><body><h1>Livros Cadastrados</h1><ul>"
-            for filme in filmes_cadastrados:
-                html += f"<li><strong>{filme['nome']}</strong> - {filme['diretor']} ({filme['ano']})</li>"
+            html = "<html><body><h1>Filmes Cadastrados</h1><ul>"
+            if filmes_cadastrados:
+                for filme in filmes_cadastrados:
+                    html += f"<li><strong>{filme['nome']}</strong> - {filme['diretor']} ({filme['ano']})</li>"
+            else:
+                html += "<p>Nenhum filme cadastrado.</p>"
             html += "</ul></body></html>"
 
             self.wfile.write(html.encode())
+
+        else:
+            super().do_GET()
+
+        
 
 
     def do_POST(self):
@@ -139,6 +149,10 @@ class MyHandle (SimpleHTTPRequestHandler):
             }
 
             filmes_cadastrados.append(filme)
+
+            # Salvar no arquivo JSON
+            with open('filmes.json', 'w', encoding='utf-8') as f:
+                json.dump(filmes_cadastrados, f, ensure_ascii=False, indent=4)
 
             print("Data Form: ")
             print("Nome do Filme: ", form_data.get('nome', [''])[0])
