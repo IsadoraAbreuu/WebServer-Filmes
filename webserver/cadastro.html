@@ -12,13 +12,13 @@
             <h1>Cadastro de Filmes</h1>
             <form action="/sendcadastro" method="post" id="informacoesCadastro">
                 <label>Nome:</label>
-                <input type="text" class="nome" name="nome" placeholder="Digite o nome do filme">
+                <input type="text" class="nome" name="nome" placeholder="Digite o nome do filme"><br>
                 <label for="atores">Atores:</label>
-                <input type="text" id="atores" name="atores" placeholder="Digite os atores separados por vírgula">
+                <input type="text" id="atores" name="atores" placeholder="Digite os atores separados por vírgula"><br>
                 <label>Diretor:</label>
-                <input type="text" class="diretor" name="diretor" placeholder="Digite o diretor do filme">
+                <input type="text" class="diretor" name="diretor" placeholder="Digite o diretor do filme"><br>
                 <label>Ano:</label>
-                <input type="text" id="ano" name="ano" pattern="\d{4}" maxlength="4" placeholder="2025">
+                <input type="text" id="ano" name="ano" pattern="\d{4}" maxlength="4" placeholder="2025"><br>
                 <label>Genero do filme:</label><br>
                 <select name="genero" id="genero">
                 <optgroup label="Principais">
@@ -43,11 +43,10 @@
                 </optgroup>
                 </select>
                 <label>Produtora:</label>
-                <input type="text" class="produtora" name="produtora" placeholder="Digite a produtora do filme">
+                <input type="text" class="produtora" name="produtora" placeholder="Digite a produtora do filme"><br>
                 <label>Sinopse do filme:</label><br>
-                <textarea id="sinopse" name="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea>
-
-
+                <textarea id="sinopse" name="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea><br>
+                
                 <button>Cadastrar</button>
             </form>
         </main>

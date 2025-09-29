@@ -23,12 +23,22 @@ import json
 filmes_cadastrados = []
 
 # Carregar filmes do arquivo JSON (se existir)
-if os.path.exists('filmes.json'):
-    with open('filmes.json', 'r', encoding='utf-8') as f:
-        try:
-            filmes_cadastrados = json.load(f)
-        except json.JSONDecodeError:
-            filmes_cadastrados = []
+def load_filmes():
+    global filmes_cadastrados
+    if os.path.exists('filmes.json'):
+        with open('filmes.json', 'r', encoding='utf-8') as f:
+            try:
+                filmes_cadastrados = json.load(f)
+            except json.JSONDecodeError:
+                filmes_cadastrados = []
+
+# Salvar filmes no arquivo JSON
+def save_filmes():
+    with open('filmes.json', 'w', encoding='utf-8') as f:
+        json.dump(filmes_cadastrados, f, ensure_ascii=False, indent=4)
+
+# Carregar filmes ao iniciar o servidor
+load_filmes()
 
 class MyHandle (SimpleHTTPRequestHandler):
     def list_directory(self, path):
@@ -53,6 +63,7 @@ class MyHandle (SimpleHTTPRequestHandler):
             return "Usuário logado com sucess :)"
         else:
             return "Usuário não existente :("
+
 
     def do_GET(self):
         if self.path == '/login':
@@ -107,8 +118,6 @@ class MyHandle (SimpleHTTPRequestHandler):
 
         else:
             super().do_GET()
-
-        
 
 
     def do_POST(self):
@@ -177,6 +186,81 @@ class MyHandle (SimpleHTTPRequestHandler):
 
         else:
             super(MyHandle, self).do_POST()
+            
+    def do_PUT(self):
+        """Método para editar um filme existente"""
+        if self.path.startswith('/edit_filme'):
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body)
+
+            filme_id = form_data.get('id', [None])[0]
+            if filme_id:
+                try:
+                    filme_id = int(filme_id)
+                    if 0 <= filme_id < len(filmes_cadastrados):
+                        # Atualizando filme
+                        filme = filmes_cadastrados[filme_id]
+                        filme['nome'] = form_data.get('nome', [''])[0]
+                        filme['atores'] = form_data.get('atores', [''])[0]
+                        filme['diretor'] = form_data.get('diretor', [''])[0]
+                        filme['ano'] = form_data.get('ano', [''])[0]
+                        filme['genero'] = form_data.get('genero', [''])[0]
+                        filme['produtora'] = form_data.get('produtora', [''])[0]
+                        filme['sinopse'] = form_data.get('sinopse', [''])[0]
+
+                        # Atualizar o arquivo JSON com a lista de filmes atualizada
+                        save_filmes()
+
+                        self.send_response(200)
+                        self.send_header("Content-type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'message': 'Filme editado com sucesso'}).encode('utf-8'))
+                    else:
+                        self.send_response(404)
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Filme não encontrado'}).encode('utf-8'))
+                except ValueError:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'ID inválido'}).encode('utf-8'))
+            else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'ID do filme não fornecido'}).encode('utf-8'))
+
+    def do_DELETE(self):
+        """Método para excluir um filme"""
+        if self.path.startswith('/delete_filme'):
+            query = urlparse(self.path).query
+            params = parse_qs(query)
+            filme_id = params.get('id', [None])[0]
+            if filme_id:
+                try:
+                    filme_id = int(filme_id)
+                    if 0 <= filme_id < len(filmes_cadastrados):
+                        # Exclui o filme da lista
+                        del filmes_cadastrados[filme_id]
+
+                        # Atualizar o arquivo JSON após exclusão
+                        save_filmes()
+
+                        self.send_response(200)
+                        self.send_header("Content-type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'message': 'Filme deletado com sucesso'}).encode('utf-8'))
+                    else:
+                        self.send_response(404)
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Filme não encontrado'}).encode('utf-8'))
+                except ValueError:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'ID inválido'}).encode('utf-8'))
+            else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'ID do filme não fornecido'}).encode('utf-8'))
     
 def main():
     server_address = ('', 8000)
