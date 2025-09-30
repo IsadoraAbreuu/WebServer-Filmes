@@ -88,6 +88,7 @@ class MyHandle (SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
+        # lista de filmes em html
         elif self.path == '/listar_filmes':
             try:
                 with open(os.path.join(os.getcwd(), 'listarFilmes.html'), 'r') as listarFilmes:
@@ -99,6 +100,7 @@ class MyHandle (SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
+        # lista filmes em json
         elif self.path == '/listarfilmes':
             arquivo = 'filmes.json'
 
@@ -188,18 +190,18 @@ class MyHandle (SimpleHTTPRequestHandler):
             super(MyHandle, self).do_POST()
             
     def do_PUT(self):
-        """Método para editar um filme existente"""
-        if self.path.startswith('/edit_filme'):
+        if self.path == '/editarfilme':
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length).decode('utf-8')
             form_data = parse_qs(body)
+            print(self.path)
 
             filme_id = form_data.get('id', [None])[0]
             if filme_id:
                 try:
                     filme_id = int(filme_id)
                     if 0 <= filme_id < len(filmes_cadastrados):
-                        # Atualizando filme
+                        # Atualiza filme
                         filme = filmes_cadastrados[filme_id]
                         filme['nome'] = form_data.get('nome', [''])[0]
                         filme['atores'] = form_data.get('atores', [''])[0]
@@ -231,7 +233,7 @@ class MyHandle (SimpleHTTPRequestHandler):
 
     def do_DELETE(self):
         """Método para excluir um filme"""
-        if self.path.startswith('/delete_filme'):
+        if self.path.startswith('/deletarfilme'):
             query = urlparse(self.path).query
             params = parse_qs(query)
             filme_id = params.get('id', [None])[0]
