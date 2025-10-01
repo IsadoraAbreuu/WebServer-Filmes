@@ -17,8 +17,8 @@ fetch('http://localhost:8000/listarfilmes')
           <strong>Gênero:</strong> ${lista.genero}<br>
           <strong>Produtora:</strong> ${lista.produtora}<br>
           <strong>Sinopse:</strong> ${lista.sinopse}<br>
-          <button onclick='carregarParaEdicao(${lista.id})'>Editar</button>
-          <button onclick="window.location.href='editarFilme.html?id=${lista.id}'">Editar</button>
+          <button onclick='deleteFilme(${lista.id})'>Excluir</button>
+          <button onclick="window.location.href='editar.html?id=${lista.id}'">Editar</button>
         </li>
       `;
     });
@@ -28,39 +28,39 @@ fetch('http://localhost:8000/listarfilmes')
 // ------------- EDITAR FILMES ---------------
 // Enviar as alterações ao servidor
 document.getElementById("formEditar").addEventListener("submit", function(e) {
-  e.preventDefault(); // Evita que o formulário seja enviado como padrão
+    e.preventDefault();
 
-  // Cria um objeto com os dados atualizados
-  const filme = {
-    id: document.getElementById('id').value,
-    nome: document.getElementById('nome').value,
-    atores: document.getElementById('atores').value,
-    diretor: document.getElementById('diretor').value,
-    ano: document.getElementById('ano').value,
-    genero: document.getElementById('genero').value,
-    produtora: document.getElementById('produtora').value,
-    sinopse: document.getElementById('sinopse').value
-  };
+    // Pega os valores atuais do formulário
+    const id = document.getElementById('id').value;
 
-  // Verifica se o id foi corretamente passado
-  if (!filme.id) {
-    alert("ID não encontrado!");
-    return;
-  }
+    const filme = {
+        id: id,
+        nome: document.getElementById('nome').value || undefined,
+        atores: document.getElementById('atores').value || undefined,
+        diretor: document.getElementById('diretor').value || undefined,
+        ano: document.getElementById('ano').value || undefined,
+        genero: document.getElementById('genero').value || undefined,
+        produtora: document.getElementById('produtora').value || undefined,
+        sinopse: document.getElementById('sinopse').value || undefined,
+    };
 
-  // Envia a solicitação PUT para editar o filme
-  fetch(`http://localhost:8000/editarfilme?id=${filme.id}`, {
-    method: 'PUT',  // Alterar de 'POST' para 'PUT'
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(filme).toString(),  // Envia os dados do filme como parâmetros de URL
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.message || "Filme editado com sucesso!");
-    fetchFilmes(); // Recarrega a lista de filmes após a edição
-  })
-  .catch(err => console.error(err));
+    fetch('http://localhost:8000/editarfilme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(filme).toString(),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) {
+            alert(data.message);
+            window.location.href = 'listar_filmes';
+        } else {
+            alert('Erro ao atualizar o filme.');
+        }
+    })
+    .catch(err => console.error("Erro:", err));
 });
+
 
 
 
@@ -76,7 +76,7 @@ function deleteFilme(id) {
     .then(res => res.json())
     .then(data => {
       alert(data.message || "Filme excluído com sucesso!");
-      fetchFilmes(); // Recarrega a lista de filmes após a exclusão
+        location.reload(); // recarrega a página inteira
     })
     .catch(err => console.error(err));
   }

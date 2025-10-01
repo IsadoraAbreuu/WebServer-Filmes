@@ -19,6 +19,7 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
 import json
 
+
 # Lista para armazenar os livros cadastrados 
 filmes_cadastrados = []
 
@@ -190,61 +191,64 @@ class MyHandle (SimpleHTTPRequestHandler):
             self.wfile.write("Filme cadastrado com sucess !".encode('utf-8'))
 
 
-        # ---------- EDITAR OU DELETAR FILME ----------
-        elif self.path == '/editarfilme' or self.path == '/deletarfilme':
+        # ---------- EDITAR ----------
+        elif self.path == '/editarfilme':
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length).decode('utf-8')
             form_data = parse_qs(body)
 
             filme_id = int(form_data.get('id', [None])[0])
+            filme = filmes_cadastrados[filme_id]
+            if form_data.get('nome', [''])[0]:
+                filme['nome'] = form_data.get('nome')[0]
+            if form_data.get('atores', [''])[0]:
+                filme['atores'] = form_data.get('atores')[0]
+            if form_data.get('diretor', [''])[0]:
+                filme['diretor'] = form_data.get('diretor')[0]
+            if form_data.get('ano', [''])[0]:
+                filme['ano'] = form_data.get('ano')[0]
+            if form_data.get('genero', [''])[0]:
+                filme['genero'] = form_data.get('genero')[0]
+            if form_data.get('produtora', [''])[0]:
+                filme['produtora'] = form_data.get('produtora')[0]
+            if form_data.get('sinopse', [''])[0]:
+                filme['sinopse'] = form_data.get('sinopse')[0]
 
-            if self.path == '/editarfilme':
-                content_length = int(self.headers['Content-Length'])
-                body = self.rfile.read(content_length).decode('utf-8')
-                form_data = parse_qs(body)
-                
-                filme_id = int(form_data.get('id', [None])[0])
-
-                if 0 <= filme_id < len(filmes_cadastrados):
-                    filme = filmes_cadastrados[filme_id]
-                    filme['nome'] = form_data.get('nome', [''])[0]
-                    filme['atores'] = form_data.get('atores', [''])[0]
-                    filme['diretor'] = form_data.get('diretor', [''])[0]
-                    filme['ano'] = form_data.get('ano', [''])[0]
-                    filme['genero'] = form_data.get('genero', [''])[0]
-                    filme['produtora'] = form_data.get('produtora', [''])[0]
-                    filme['sinopse'] = form_data.get('sinopse', [''])[0]
-
-                    save_filmes()
-
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'message': 'Filme editado com sucesso'}).encode('utf-8'))
+                save_filmes()
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Filme editado com sucesso'}).encode('utf-8'))
             else:
                 self.send_response(404)
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': 'Filme não encontrado'}).encode('utf-8'))
 
+        # ---------- DELETE ----------
         elif self.path == '/deletarfilme':
-        # ---------- DELETAR FILME ----------
-            if 0 <= filme_id < len(filmes_cadastrados):
-                del filmes_cadastrados[filme_id]
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body)
 
-                # Reatribui IDs após exclusão
+            filme_id = int(form_data.get('id', [None])[0])
+            filme_encontrado = next((f for f in filmes_cadastrados if f["id"] == filme_id), None)
+
+            if filme_encontrado:
+                filmes_cadastrados.remove(filme_encontrado)
                 for i, filme in enumerate(filmes_cadastrados):
                     filme["id"] = i
-
                 save_filmes()
-
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Filme deletado com sucesso'}).encode('utf-8'))
             else:
                 self.send_response(404)
+                self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': 'Filme não encontrado'}).encode('utf-8'))
+
+
 
 
         else:
