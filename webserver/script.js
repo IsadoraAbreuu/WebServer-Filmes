@@ -18,72 +18,67 @@ fetch('http://localhost:8000/listarfilmes')
           <strong>Produtora:</strong> ${lista.produtora}<br>
           <strong>Sinopse:</strong> ${lista.sinopse}<br>
           <button onclick='carregarParaEdicao(${lista.id})'>Editar</button>
-          <button onclick='deleteFilme(${lista.id})'>Excluir</button>
+          <button onclick="window.location.href='editarFilme.html?id=${lista.id}'">Editar</button>
         </li>
       `;
     });
   });
 
+
 // ------------- EDITAR FILMES ---------------
-// função de carregar os dados do filme no formulário
-function carregarParaEdicao(id) {
-    const filme = filmes.find(f => f.id === id);
-    if (!filme) return alert("Filme não encontrado!");
-    
-    document.getElementById("id").value = filme.id;
-    document.getElementById("nome").value = filme.nome;
-    document.getElementById("atores").value = filme.atores;
-    document.getElementById("diretor").value = filme.diretor;
-    document.getElementById("ano").value = filme.ano;
-    document.getElementById("genero").value = filme.genero;
-    document.getElementById("produtora").value = filme.produtora;
-    document.getElementById("sinopse").value = filme.sinopse;
-}
+// Enviar as alterações ao servidor
+document.getElementById("formEditar").addEventListener("submit", function(e) {
+  e.preventDefault(); // Evita que o formulário seja enviado como padrão
 
-// enviar edição para o servidor
-document.getElementById("formEditar").addEventListener("submit", function(e){
-    e.preventDefault();
-    const filme = {
-        id: document.getElementById('id').value,
-        nome: document.getElementById('nome').value,
-        atores: document.getElementById('atores').value,
-        diretor: document.getElementById('diretor').value,
-        ano: document.getElementById('ano').value,
-        genero: document.getElementById('genero').value,
-        produtora: document.getElementById('produtora').value,
-        sinopse: document.getElementById('sinopse').value
-    };
+  // Cria um objeto com os dados atualizados
+  const filme = {
+    id: document.getElementById('id').value,
+    nome: document.getElementById('nome').value,
+    atores: document.getElementById('atores').value,
+    diretor: document.getElementById('diretor').value,
+    ano: document.getElementById('ano').value,
+    genero: document.getElementById('genero').value,
+    produtora: document.getElementById('produtora').value,
+    sinopse: document.getElementById('sinopse').value
+  };
 
-    fetch('http://localhost:8000/editarfilme', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(filme).toString(),
-    })
-    .then(res => res.json())
-    .then(data => alert(data.message || "Filme editado!"))
-    .catch(err => console.error(err));
+  // Verifica se o id foi corretamente passado
+  if (!filme.id) {
+    alert("ID não encontrado!");
+    return;
+  }
+
+  // Envia a solicitação PUT para editar o filme
+  fetch(`http://localhost:8000/editarfilme?id=${filme.id}`, {
+    method: 'PUT',  // Alterar de 'POST' para 'PUT'
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(filme).toString(),  // Envia os dados do filme como parâmetros de URL
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message || "Filme editado com sucesso!");
+    fetchFilmes(); // Recarrega a lista de filmes após a edição
+  })
+  .catch(err => console.error(err));
 });
 
 
-// ------------- DELETAR FILMES ---------------
-function deleteFilme(id){
-    fetch(`http://localhost:8000/deletarfilme?id=${id}`, { method: 'DELETE' })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            // opcional: remover da tela sem recarregar
-            filmes = filmes.filter(f => f.id !== id);
-            document.querySelector('#listafilmes').innerHTML = '';
-            filmes.forEach(filme => {
-                document.querySelector('#listafilmes').innerHTML += `
-                  <li>
-                    <strong>${filme.nome}</strong> (${filme.ano})<br>
-                    <button onclick="carregarParaEdicao(${filme.id})">Editar</button>
-                    <button onclick="deleteFilme(${filme.id})">Excluir</button>
-                  </li>
-                `;
-            });
-        })
-        .catch(err => console.error(err));
+
+// ------------- DELETE FILMES ---------------
+// Função para excluir um filme
+function deleteFilme(id) {
+  if (confirm('Tem certeza que deseja excluir este filme?')) {
+    fetch(`http://localhost:8000/deletarfilme`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ id }).toString() // Envia o id do filme como parâmetro
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || "Filme excluído com sucesso!");
+      fetchFilmes(); // Recarrega a lista de filmes após a exclusão
+    })
+    .catch(err => console.error(err));
+  }
 }
 

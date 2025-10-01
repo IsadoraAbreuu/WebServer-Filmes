@@ -1,51 +1,51 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar | Filmes</title>
-</head>
-<body>
-    <form id="formEditar">
-        <input type="hidden" id="id" name="id" value="0"> <!-- valor será trocado no client -->
-        <label>Nome:</label>
-        <input type="text" id="nome" name="nome" placeholder="Digite o nome do filme"><br>
-        <label for="atores">Atores:</label>
-        <input type="text" id="atores" name="atores" placeholder="Digite os atores separados por vírgula"><br>
-        <label>Diretor:</label>
-        <input type="text" id="diretor" name="diretor" placeholder="Digite o diretor do filme"><br>
-        <label>Ano:</label>
-        <input type="text" id="ano" name="ano" pattern="\d{4}" maxlength="4" placeholder="2025"><br>
-        <label>Genero do filme:</label><br>
-        <select name="genero" id="genero">
-        <optgroup label="Principais">
-            <option value="acao">Acao</option>
-            <option value="aventura">Aventura</option>
-            <option value="comedia">Comedia</option>
-            <option value="drama">Drama</option>
-            <option value="ficcao">Ficcao Cientifica</option>
-            <option value="fantasia">Fantasia</option>
-            <option value="romance">Romance</option>
-            <option value="terror">Terror</option>
-            <option value="suspense">Suspense</option>
-            <option value="animacao">Animacao</option>
-        </optgroup>
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Editar | Filmes</title>
+    </head>
+    <body>
+        <form id="formEditar">
+            <input type="hidden" id="id" name="id" value="0"> <!-- valor será trocado no client -->
+            <label>Nome:</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite o nome do filme"><br>
+            <label for="atores">Atores:</label>
+            <input type="text" id="atores" name="atores" placeholder="Digite os atores separados por vírgula"><br>
+            <label>Diretor:</label>
+            <input type="text" id="diretor" name="diretor" placeholder="Digite o diretor do filme"><br>
+            <label>Ano:</label>
+            <input type="text" id="ano" name="ano" pattern="\d{4}" maxlength="4" placeholder="2025"><br>
+            <label>Genero do filme:</label><br>
+            <select name="genero" id="genero">
+            <optgroup label="Principais">
+                <option value="acao">Acao</option>
+                <option value="aventura">Aventura</option>
+                <option value="comedia">Comedia</option>
+                <option value="drama">Drama</option>
+                <option value="ficcao">Ficcao Cientifica</option>
+                <option value="fantasia">Fantasia</option>
+                <option value="romance">Romance</option>
+                <option value="terror">Terror</option>
+                <option value="suspense">Suspense</option>
+                <option value="animacao">Animacao</option>
+            </optgroup>
 
-        <optgroup label="Outros">
-            <option value="documentario">Documentario</option>
-            <option value="musical">Musical</option>
-            <option value="biografia">Biografia</option>
-            <option value="guerra">Guerra</option>
-            <option value="western">Faroeste</option>
-        </optgroup>
-        </select><br>
-        <label>Produtora:</label>
-        <input type="text" id="produtora" name="produtora" placeholder="Digite a produtora do filme"><br>
-        <label>Sinopse do filme:</label><br>
-        <textarea id="sinopse" name="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea>
+            <optgroup label="Outros">
+                <option value="documentario">Documentario</option>
+                <option value="musical">Musical</option>
+                <option value="biografia">Biografia</option>
+                <option value="guerra">Guerra</option>
+                <option value="western">Faroeste</option>
+            </optgroup>
+            </select><br>
+            <label>Produtora:</label>
+            <input type="text" id="produtora" name="produtora" placeholder="Digite a produtora do filme"><br>
+            <label>Sinopse do filme:</label><br>
+            <textarea id="sinopse" name="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea>
 
-        <button type="submit">Salvar alterações</button>
-    </form>
-    <script src="script.js"></script>
-</body>
-</html>
+            <button type="submit">Salvar alterações</button>
+        </form>
+        <script src="script.js"></script>
+    </body>
+    </html>
