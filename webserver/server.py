@@ -18,28 +18,16 @@ import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
 import json
+# Importação da biblioteca (precisa instalar: pip install mysql-connector-python)
+import mysql.connector
 
 
-# Lista para armazenar os livros cadastrados 
-filmes_cadastrados = []
-
-# Carregar filmes do arquivo JSON (se existir)
-def load_filmes():
-    global filmes_cadastrados
-    if os.path.exists('filmes.json'):
-        with open('filmes.json', 'r', encoding='utf-8') as f:
-            try:
-                filmes_cadastrados = json.load(f)
-            except json.JSONDecodeError:
-                filmes_cadastrados = []
-
-# Salvar filmes no arquivo JSON
-def save_filmes():
-    with open('filmes.json', 'w', encoding='utf-8') as f:
-        json.dump(filmes_cadastrados, f, ensure_ascii=False, indent=4)
-
-# Carregar filmes ao iniciar o servidor
-load_filmes()
+# Interligando com a conexão do seu banco de dados
+mydb = mysql.connector.connect(
+    host = "localhost",
+    user = "root",
+    password = "senai"
+)
 
 class MyHandle (SimpleHTTPRequestHandler):
     def list_directory(self, path):
@@ -79,6 +67,7 @@ class MyHandle (SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
+
         # ---------- GET CADASTRO ----------
         elif self.path == '/cadastro':
             try:
@@ -92,34 +81,59 @@ class MyHandle (SimpleHTTPRequestHandler):
                 self.send_error(404, "File Not Found")
 
         # ---------- LISTA FILMES ----------
-        elif self.path == '/listar_filmes':
+        # Serve a página HTML com a lista de filmes
+        elif self.path == '/listarfilmes':
             try:
-                with open(os.path.join(os.getcwd(), 'listarFilmes.html'), 'r') as listarFilmes:
-                    content = listarFilmes.read()
+                with open(os.path.join(os.getcwd(), 'listarFilmes.html'), 'r', encoding='utf-8') as file:
+                    content = file.read()
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                self.wfile.write(content.encode("utf-8"))
+                self.wfile.write(content.encode('utf-8'))
             except FileNotFoundError:
                 self.send_error(404, "File Not Found")
 
-        # ---------- LISTA FILMES JSON ----------
-        elif self.path == '/listarfilmes':
-            arquivo = 'filmes.json'
-
-            if os.path.exists(arquivo):
-                with open(arquivo, encoding='utf-8') as listagem:
-                    try:
-                        filmes = json.load(listagem)
-                    except json.JSONDecodeError:
-                        filmes = []
-            else:
-                filmes = []
+        # ---------- LISTA FILMES ----------
+        elif self.path == '/api_listarfilmes':
+            print(f"Caminho requisitado: {self.path}") 
+            cursor = mydb.cursor(dictionary=True)
+            sql = """
+                SELECT 
+                    f.id_filme,
+                    f.titulo,
+                    f.orcamento,
+                    f.tempo_duracao,
+                    f.ano,
+                    f.poster,
+                    GROUP_CONCAT(DISTINCT CONCAT(a.nome, ' ', a.sobrenome) SEPARATOR ', ') AS atores,
+                    GROUP_CONCAT(DISTINCT CONCAT(d.nome, ' ', d.sobrenome) SEPARATOR ', ') AS diretores,
+                    GROUP_CONCAT(DISTINCT p.nome SEPARATOR ', ') AS produtoras,
+                    GROUP_CONCAT(DISTINCT g.nome SEPARATOR ', ') AS generos,
+                    GROUP_CONCAT(DISTINCT pais.nome SEPARATOR ', ') AS paises,
+                    GROUP_CONCAT(DISTINCT l.nome SEPARATOR ', ') AS linguagens
+                FROM PLATAFORMA_FILMES.FIlme f
+                LEFT JOIN PLATAFORMA_FILMES.Ator_Filme af ON f.id_filme = af.id_filme
+                LEFT JOIN PLATAFORMA_FILMES.Ator a ON af.id_ator = a.id_ator
+                LEFT JOIN PLATAFORMA_FILMES.Diretor_Filme df ON f.id_filme = df.id_filme
+                LEFT JOIN PLATAFORMA_FILMES.Diretor d ON df.id_diretor = d.id_diretor
+                LEFT JOIN PLATAFORMA_FILMES.Produtora_Filme pf ON f.id_filme = pf.id_filme
+                LEFT JOIN PLATAFORMA_FILMES.Produtora p ON pf.id_produtora = p.id_produtora
+                LEFT JOIN PLATAFORMA_FILMES.Genero_Filme gf ON f.id_filme = gf.id_filme
+                LEFT JOIN PLATAFORMA_FILMES.Genero g ON gf.id_genero = g.id_genero
+                LEFT JOIN PLATAFORMA_FILMES.Pais_Filme pf2 ON f.id_filme = pf2.id_filme
+                LEFT JOIN PLATAFORMA_FILMES.Pais pais ON pf2.id_pais = pais.id_pais
+                LEFT JOIN PLATAFORMA_FILMES.Linguagem_Filme lf ON f.id_filme = lf.id_filme
+                LEFT JOIN PLATAFORMA_FILMES.Linguagem l ON lf.id_linguagem = l.id_linguagem
+                GROUP BY f.id_filme
+                ORDER BY f.titulo
+            """
+            cursor.execute(sql)
+            filmes_completos = cursor.fetchall()
 
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps(filmes).encode('utf-8'))
+            self.wfile.write(json.dumps(filmes_completos, default=str).encode('utf-8'))
 
         else:
             super().do_GET()
@@ -160,36 +174,16 @@ class MyHandle (SimpleHTTPRequestHandler):
             produtora = form_data.get('produtora', [""])[0]
             sinopse = form_data.get('sinopse', [""])[0]
 
-            # Criando dicionário com os dados do livro
-            filme = {
-                "id": len(filmes_cadastrados),
-                "nome": nome,
-                "atores": atores,
-                "diretor": diretor,
-                "ano": ano,
-                "genero": genero,
-                "produtora": produtora,
-                "sinopse": sinopse
-            }
-
-            filmes_cadastrados.append(filme)
-            # Salvar no arquivo JSON
-            save_filmes()
-
-            print("Data Form: ")
-            print("Nome do Filme: ", form_data.get('nome', [''])[0])
-            print("Atores: ", form_data.get('atores', [''])[0])
-            print("Diretor: ", form_data.get('diretor', [''])[0])
-            print("Ano: ", form_data.get('ano', [''])[0])
-            print("Genero: ", form_data.get('genero', [''])[0])
-            print("Produtora: ", form_data.get('produtora', [''])[0])
-            print("Sinopse: ", form_data.get('sinopse', [''])[0])
+            cursor = mydb.cursor()
+            sql = "INSERT INTO PLATAFORMA_FILMES.Filme (titulo, atores, diretor, ano, genero, produtora, sinopse) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            values = (nome, atores, diretor, ano, genero, produtora, sinopse)
+            cursor.execute(sql, values)
+            mydb.commit()
 
             self.send_response(200)
             self.send_header("Content-type", 'text/html')
             self.end_headers()
-            self.wfile.write("Filme cadastrado com sucess !".encode('utf-8'))
-
+            self.wfile.write("Filme cadastrado com sucesso!".encode('utf-8'))
 
         # ---------- EDITAR ----------
         elif self.path == '/editarfilme':
@@ -197,32 +191,25 @@ class MyHandle (SimpleHTTPRequestHandler):
             body = self.rfile.read(content_length).decode('utf-8')
             form_data = parse_qs(body)
 
-            filme_id = int(form_data.get('id', [None])[0])
-            filme = filmes_cadastrados[filme_id]
-            if form_data.get('nome', [''])[0]:
-                filme['nome'] = form_data.get('nome')[0]
-            if form_data.get('atores', [''])[0]:
-                filme['atores'] = form_data.get('atores')[0]
-            if form_data.get('diretor', [''])[0]:
-                filme['diretor'] = form_data.get('diretor')[0]
-            if form_data.get('ano', [''])[0]:
-                filme['ano'] = form_data.get('ano')[0]
-            if form_data.get('genero', [''])[0]:
-                filme['genero'] = form_data.get('genero')[0]
-            if form_data.get('produtora', [''])[0]:
-                filme['produtora'] = form_data.get('produtora')[0]
-            if form_data.get('sinopse', [''])[0]:
-                filme['sinopse'] = form_data.get('sinopse')[0]
+            filme_id = int(form_data.get('id', [0])[0])
+            nome = form_data.get('nome', [""])[0]
+            atores = form_data.get('atores', [""])[0]
+            diretor = form_data.get('diretor', [""])[0]
+            ano = form_data.get('ano', [""])[0]
+            genero = form_data.get('genero', [""])[0]
+            produtora = form_data.get('produtora', [""])[0]
+            sinopse = form_data.get('sinopse', [""])[0]
 
-                save_filmes()
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Filme editado com sucesso'}).encode('utf-8'))
-            else:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': 'Filme não encontrado'}).encode('utf-8'))
+            cursor = mydb.cursor()
+            sql = """UPDATE PLATAFORMA_FILMES.Filme SET titulo=%s, atores=%s, diretor=%s, ano=%s, genero=%s, produtora=%s, sinopse=%s WHERE id=%s"""
+            values = (nome, atores, diretor, ano, genero, produtora, sinopse, filme_id)
+            cursor.execute(sql, values)
+            mydb.commit()
+
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({'message': 'Filme editado com sucesso'}).encode('utf-8'))
 
         # ---------- DELETE ----------
         elif self.path == '/deletarfilme':
@@ -230,26 +217,17 @@ class MyHandle (SimpleHTTPRequestHandler):
             body = self.rfile.read(content_length).decode('utf-8')
             form_data = parse_qs(body)
 
-            filme_id = int(form_data.get('id', [None])[0])
-            filme_encontrado = next((f for f in filmes_cadastrados if f["id"] == filme_id), None)
+            filme_id = int(form_data.get('id', [0])[0])
 
-            if filme_encontrado:
-                filmes_cadastrados.remove(filme_encontrado)
-                for i, filme in enumerate(filmes_cadastrados):
-                    filme["id"] = i
-                save_filmes()
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Filme deletado com sucesso'}).encode('utf-8'))
-            else:
-                self.send_response(404)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': 'Filme não encontrado'}).encode('utf-8'))
+            cursor = mydb.cursor()
+            sql = "DELETE FROM PLATAFORMA_FILMES.Filme WHERE id=%s"
+            cursor.execute(sql, (filme_id,))
+            mydb.commit()
 
-
-
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({'message': 'Filme deletado com sucesso'}).encode('utf-8'))
 
         else:
             super(MyHandle, self).do_POST()
