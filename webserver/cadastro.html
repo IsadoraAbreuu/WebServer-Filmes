@@ -13,13 +13,28 @@
             <form action="/sendcadastro" method="post" id="informacoesCadastro">
                 <label>Nome:</label>
                 <input type="text" class="nome" name="nome" placeholder="Digite o nome do filme"><br>
-                <label for="atores">Atores:</label>
-                <input type="text" id="atores" name="atores" placeholder="Digite os atores separados por vírgula"><br>
-                <label>Diretor:</label>
-                <input type="text" class="diretor" name="diretor" placeholder="Digite o diretor do filme"><br>
+
                 <label>Ano:</label>
                 <input type="text" id="ano" name="ano" pattern="\d{4}" maxlength="4" placeholder="2025"><br>
-                <label>Genero do filme:</label><br>
+
+                <label>Poster:</label>
+                <input type="url" id="poster" name="poster" placeholder="Coloque a url do poster do filme"><br>
+
+                <label>Produtora:</label>
+                <input type="text" class="produtora" name="produtora" placeholder="Digite a produtora do filme"><br>
+
+                <label>Orçamento:</label>
+                <input type="number" class="orcamento" name="orcamento" placeholder="Digite o orçamento do filme"><br>
+
+                <label>Duração:</label>
+                <input type="text" class="duracao" name="duracao" placeholder="Digite a duração do filme"><br>
+
+                <!-- <label for="atores">Atores:</label>
+                <input type="text" id="atores" name="atores" placeholder="Digite os atores separados por vírgula"><br> -->
+                <!-- <label>Diretor:</label>
+                <input type="text" class="diretor" name="diretor" placeholder="Digite o diretor do filme"><br> -->
+                
+                <!-- <label>Genero do filme:</label><br>
                 <select name="genero" id="genero">
                 <optgroup label="Principais">
                     <option value="acao">Acao</option>
@@ -41,11 +56,10 @@
                     <option value="guerra">Guerra</option>
                     <option value="western">Faroeste</option>
                 </optgroup>
-                </select>
-                <label>Produtora:</label>
-                <input type="text" class="produtora" name="produtora" placeholder="Digite a produtora do filme"><br>
-                <label>Sinopse do filme:</label><br>
-                <textarea id="sinopse" name="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea><br>
+                </select> -->
+                
+                <!-- <label>Sinopse do filme:</label><br>
+                <textarea id="sinopse" name="sinopse" rows="6" cols="50" placeholder="Digite aqui a sinopse ou descricao do filme...   "></textarea><br> -->
 
                 <button>Cadastrar</button>
                 

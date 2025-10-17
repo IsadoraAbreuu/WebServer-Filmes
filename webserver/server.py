@@ -52,7 +52,17 @@ class MyHandle (SimpleHTTPRequestHandler):
             return "Usuário logado com sucess :)"
         else:
             return "Usuário não existente :("
-
+        
+    def insertFilmes(self, nome, produtora, orcamento, duracao, ano, poster):
+        cursor = mydb.cursor()
+        cursor.execute("INSERT INTO PLATAFORMA_FILMES.FIlme (titulo, id_produtora, orcamento, duracao, ano, poster) VALUES (%s, %s, %s, %s, %s, %s)", (nome, produtora, orcamento, duracao, ano, poster))
+        cursor.execute("SELECT id_filme FROM FIlmes WHERE titulo = %s", {nome,})
+        resultado = cursor.fetchall()
+        cursor.execute("SELECT * FROM PLATAFORMA_FILMES.FIlme WHERE id_filme = %s", {resultado[0][0]},)
+        resultado = cursor.fetchall
+        print(resultado)
+        cursor.close()
+        return resultado
 
     def do_GET(self):
         # ---------- GET LOGIN ----------
@@ -167,23 +177,32 @@ class MyHandle (SimpleHTTPRequestHandler):
             form_data = parse_qs(body)
 
             nome = form_data.get('nome',[""])[0]
-            atores = form_data.get('atores', [""])[0]
-            diretor = form_data.get('diretor', [""])[0]
-            ano = form_data.get('ano', [""])[0]
-            genero = form_data.get('genero', [""])[0]
             produtora = form_data.get('produtora', [""])[0]
-            sinopse = form_data.get('sinopse', [""])[0]
+            orcamento = int(form_data.get('orcamento', [""])[0])
+            duracao = form_data.get('duracao', [""])[0]
+            ano = int(form_data.get('ano', [""])[0])
+            poster = int(form_data.get('poster', [""])[0])
 
-            cursor = mydb.cursor()
-            sql = "INSERT INTO PLATAFORMA_FILMES.Filme (titulo, atores, diretor, ano, genero, produtora, sinopse) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            values = (nome, atores, diretor, ano, genero, produtora, sinopse)
-            cursor.execute(sql, values)
-            mydb.commit()
+            resp = self.insertFilmes(nome, produtora, orcamento, duracao, ano, poster)
 
-            self.send_response(200)
-            self.send_header("Content-type", 'text/html')
-            self.end_headers()
-            self.wfile.write("Filme cadastrado com sucesso!".encode('utf-8'))
+            # nome = form_data.get('nome',[""])[0]
+            # atores = form_data.get('atores', [""])[0]
+            # diretor = form_data.get('diretor', [""])[0]
+            # ano = form_data.get('ano', [""])[0]
+            # genero = form_data.get('genero', [""])[0]
+            # produtora = form_data.get('produtora', [""])[0]
+            # sinopse = form_data.get('sinopse', [""])[0]
+
+            # cursor = mydb.cursor()
+            # sql = "INSERT INTO PLATAFORMA_FILMES.Filme (titulo, atores, diretor, ano, genero, produtora, sinopse) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            # values = (nome, atores, diretor, ano, genero, produtora, sinopse)
+            # cursor.execute(sql, values)
+            # mydb.commit()
+
+            # self.send_response(200)
+            # self.send_header("Content-type", 'text/html')
+            # self.end_headers()
+            # self.wfile.write("Filme cadastrado com sucesso!".encode('utf-8'))
 
         # ---------- EDITAR ----------
         elif self.path == '/editarfilme':
