@@ -20,6 +20,8 @@ from urllib.parse import parse_qs
 import json
 # Importação da biblioteca (precisa instalar: pip install mysql-connector-python)
 import mysql.connector
+from urllib.parse import urlparse, parse_qs
+
 
 
 # Interligando com a conexão do seu banco de dados
@@ -53,20 +55,61 @@ class MyHandle (SimpleHTTPRequestHandler):
         else:
             return "Usuário não existente :("
         
+    # ---------- INSERE NO BANCO DE DADOS ----------
     def insertFilmes(self, nome, produtora, orcamento, duracao, ano, poster):
         cursor = mydb.cursor()
-        cursor.execute("INSERT INTO PLATAFORMA_FILMES.FIlme (titulo, id_produtora, orcamento, duracao, ano, poster) VALUES (%s, %s, %s, %s, %s, %s)", (nome, produtora, orcamento, duracao, ano, poster))
-        cursor.execute("SELECT id_filme FROM FIlmes WHERE titulo = %s", {nome,})
+        #verificar se o filme já existe
+        cursor.execute("SELECT id_filme FROM PLATAFORMA_FILMES.Filme WHERE titulo = %s", (nome,))
         resultado = cursor.fetchall()
-        cursor.execute("SELECT * FROM PLATAFORMA_FILMES.FIlme WHERE id_filme = %s", {resultado[0][0]},)
-        resultado = cursor.fetchall
-        print(resultado)
+        if resultado:
+            return "Filme já existe no banco de dados."
+        #caso contrário, inserir o filme
+        cursor.execute("INSERT INTO PLATAFORMA_FILMES.FIlme (titulo, id_produtora, orcamento, duracao, ano, poster) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (nome, produtora, orcamento, duracao, ano, poster))
+        mydb.commit()
         cursor.close()
-        return resultado
+        return "Inserção feita com sucesso!"
+
+    # ---------- VALIDAR CAMPOS DUPLICADO ----------
+    def validar_campos(self, nome, orcamento, ano):
+        if not nome:
+            return "Nome do filme é obrigatório!"
+        try:
+            orcamento = int(orcamento)
+        except ValueError:
+            return "Orçamento deve ser um número!"
+        try:
+            ano = int(ano)
+        except ValueError:
+            return "Ano deve ser um número válido!"
+        return None  # Caso todos os campos estejam válidos
+    
 
     def do_GET(self):
+        parsed_path = urlparse(self.path)
+        if parsed_path.path == '/sucesso.html':
+            params = parse_qs(parsed_path.query)
+            nome = params.get('nome', [''])[0]
+            produtora = params.get('produtora', [''])[0]
+            ano = params.get('ano', [''])[0]
+
+            # Carregar a página de sucesso
+            content = f"""
+            <html>
+                <body>
+                    <h1>Inserção feita com sucesso!</h1>
+                    <p><strong>Nome do Filme:</strong> {nome}</p>
+                    <p><strong>Produtora:</strong> {produtora}</p>
+                    <p><strong>Ano:</strong> {ano}</p>
+                </body>
+            </html>
+            """
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(content.encode('utf-8'))
         # ---------- GET LOGIN ----------
-        if self.path == '/login':
+        elif self.path == '/login':
             try:
                 with open(os.path.join(os.getcwd(), 'login.html'), 'r') as login:
                     content = login.read()
@@ -181,29 +224,28 @@ class MyHandle (SimpleHTTPRequestHandler):
             orcamento = int(form_data.get('orcamento', [""])[0])
             duracao = form_data.get('duracao', [""])[0]
             ano = int(form_data.get('ano', [""])[0])
-            poster = int(form_data.get('poster', [""])[0])
+            poster = form_data.get('poster', [""])[0]
+
+            # Valida os campos antes de inserir
+            erro_validacao = self.validar_campos(nome, orcamento, ano)
+            if erro_validacao:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(erro_validacao.encode('utf-8'))
+                return
 
             resp = self.insertFilmes(nome, produtora, orcamento, duracao, ano, poster)
-
-            # nome = form_data.get('nome',[""])[0]
-            # atores = form_data.get('atores', [""])[0]
-            # diretor = form_data.get('diretor', [""])[0]
-            # ano = form_data.get('ano', [""])[0]
-            # genero = form_data.get('genero', [""])[0]
-            # produtora = form_data.get('produtora', [""])[0]
-            # sinopse = form_data.get('sinopse', [""])[0]
-
-            # cursor = mydb.cursor()
-            # sql = "INSERT INTO PLATAFORMA_FILMES.Filme (titulo, atores, diretor, ano, genero, produtora, sinopse) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            # values = (nome, atores, diretor, ano, genero, produtora, sinopse)
-            # cursor.execute(sql, values)
-            # mydb.commit()
-
-            # self.send_response(200)
-            # self.send_header("Content-type", 'text/html')
-            # self.end_headers()
-            # self.wfile.write("Filme cadastrado com sucesso!".encode('utf-8'))
-
+            
+            if resp == "Inserção feita com sucesso!":
+                # Criar a URL de redirecionamento
+                sucesso_url = "/sucesso.html?" + urlencode({'nome': nome, 'produtora': produtora, 'ano': ano})
+                self.send_response(303)
+                self.send_header('Location', sucesso_url)
+                self.end_headers()
+            else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(resp.encode('utf-8'))
         # ---------- EDITAR ----------
         elif self.path == '/editarfilme':
             content_length = int(self.headers['Content-Length'])
